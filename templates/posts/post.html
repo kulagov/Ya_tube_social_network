@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Публикация пользователя: {{ author.get_full_name }} от {{ post.pub_date|date:"d M Y г. h:m" }} {% endblock %}
+{% block content %}
+<main role="main" class="container">
+  <div class="row">
+    <div class="col-md-3 mb-3 mt-1">
+      {% include 'posts/includes/card_author.html' %}
+    </div>
+  </div>
+
+  <div class="col-md-9">
+    {% include 'posts/includes/card_post.html' %}
+  </div>
+  </div>
+</main>
+{% endblock %}

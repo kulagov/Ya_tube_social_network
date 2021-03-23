@@ -1,0 +1,22 @@
+<div class="card">
+  <div class="card-body">
+    <div class="h2">
+      {{ author.get_full_name }}
+    </div>
+    <div class="h3 text-muted">
+      {{ author.email }}
+    </div>
+  </div>
+  <ul class="list-group list-group-flush">
+    <li class="list-group-item">
+      <div class="h6 text-muted">
+        Подписчиков: {{ author_card.subscribers }} <br />
+        Подписан: {{ author_card.subscribed }}
+      </div>
+    </li>
+    <li class="list-group-item">
+      <div class="h6 text-muted">
+        Записей: {{ author_card.records }}
+      </div>
+    </li>
+  </ul>
