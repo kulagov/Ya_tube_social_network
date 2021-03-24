@@ -24,18 +24,20 @@ class Index(ListView):
 
 @method_decorator(login_required, name='dispatch')
 class FollowIndex(Index):
-    template_name = 'posts/follow.html'
+    # template_name = 'posts/follow.html'
+    template_name = 'posts/index.html'
 
     # def get(self, request, *args, **kwargs):
     #     print (self.request.user)
     #     return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        print(self.request.user)
-        self.following = get_list_or_404(Follow, user=self.request.user)
+        # print(self.request.user)
+        # self.following = get_list_or_404(Follow, user=self.request.user)
+        self.following = Follow.objects.filter(user=self.request.user).values('author')
         print(self.following)
         # self.post = get_list_or_404(Post, author__in=self.following)
-        return self.post.all()
+        return Post.objects.filter(author__in=self.following)
         # return self.following.posts.all()
 
 @login_required
