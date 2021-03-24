@@ -1,0 +1,18 @@
+{% extends "base.html" %} 
+{% block title %}Подписка {% endblock %}
+
+{% block content %}
+<div class="container">
+
+    {% include "includes/menu.html" with index=True %}
+
+        <h1>Подписка:</h1>
+
+        {% for post in object_list %}
+            {% include "posts/post_item.html" with post=post %}
+        {% endfor %}
+
+        {% include "includes/paginator.html" %}
+
+    </div>
+{% endblock %}
