@@ -59,8 +59,21 @@ class Comment(models.Model):
         on_delete=models.CASCADE,
         related_name='comments',
     )
-    text = models.CharField('Комментарий', max_length=200)
+    text = models.TextField('Комментарий', max_length=200)
     created = models.DateTimeField('Дата комментария', auto_now_add=True)
 
     class Meta:
         ordering = ('-created',)
+
+
+class Follow(models.Model):
+    user = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='follower',
+    )
+    author = models.ForeignKey(
+        User,
+        on_delete=models.PROTECT,
+        related_name='following',
+    )

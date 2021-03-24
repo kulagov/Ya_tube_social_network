@@ -1,5 +1,6 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import get_object_or_404, redirect, render
+from django.shortcuts import (get_list_or_404, get_object_or_404, redirect,
+                              render)
 from django.urls import reverse_lazy
 from django.urls.base import reverse
 from django.utils.decorators import method_decorator
@@ -7,7 +8,7 @@ from django.views.decorators.cache import cache_page
 from django.views.generic import CreateView, ListView, UpdateView
 
 from .forms import CommentForm, PostForm
-from .models import Comment, Group, Post, User
+from .models import Comment, Follow, Group, Post, User
 
 
 class Index(ListView):
@@ -19,6 +20,28 @@ class Index(ListView):
         context = super().get_context_data(**kwargs)
         context['page'] = context.pop('page_obj')
         return context
+
+
+@method_decorator(login_required, name='dispatch')
+class FollowIndex(Index):
+    template_name = 'posts/follow.html'
+
+    def get_queryset(self):
+        self.following = get_list_or_404(Follow, user=self.kwargs['user'])
+        # self.post = get_list_or_404(Post, author_in=self.followin)
+        # return self.post.all()
+        return self.following.posts.all()
+
+@login_required
+def profile_follow(request, username):
+    # ...
+    pass
+
+
+@login_required
+def profile_unfollow(request, username):
+    # ...
+    pass 
 
 
 class GroupPosts(ListView):
@@ -106,19 +129,11 @@ class NewPost(CreateView):
         return super().form_valid(form)
 
 
-# @method_decorator(login_required, name='dispatch')
-# class Add_coment(CreateView):
-#     model = Comment
-#     fields = ['text',]
-#     template_name = 'posts/post.html'
-
-# @cache_page(60 * 15)
 def post_view(request, username, pk):
     author = get_object_or_404(User, username=username)
     post = get_object_or_404(Post, id=pk)
     comments = Comment.objects.filter(post=post).all()
     if request.method == 'POST':
-        # print('POST!!!!!!!!')
         form = CommentForm(request.POST)
         if form.is_valid():
             new_comment = form.save(commit=False)
