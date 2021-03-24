@@ -26,11 +26,17 @@ class Index(ListView):
 class FollowIndex(Index):
     template_name = 'posts/follow.html'
 
+    # def get(self, request, *args, **kwargs):
+    #     print (self.request.user)
+    #     return super().get(request, *args, **kwargs)
+
     def get_queryset(self):
-        self.following = get_list_or_404(Follow, user=self.kwargs['user'])
-        # self.post = get_list_or_404(Post, author_in=self.followin)
-        # return self.post.all()
-        return self.following.posts.all()
+        print(self.request.user)
+        self.following = get_list_or_404(Follow, user=self.request.user)
+        print(self.following)
+        # self.post = get_list_or_404(Post, author__in=self.following)
+        return self.post.all()
+        # return self.following.posts.all()
 
 @login_required
 def profile_follow(request, username):
