@@ -147,7 +147,8 @@ class NewPost(CreateView):
         post.author = self.request.user
         return super().form_valid(form)
 
-@login_required
+
+# @login_required
 def post_view(request, username, pk):
     author = get_object_or_404(User, username=username)
     post = get_object_or_404(Post, id=pk)
@@ -169,7 +170,10 @@ def post_view(request, username, pk):
     }
     return render(request, 'posts/post.html', content)
 
-add_comment = post_view
+
+# @login_required
+add_comment = login_required(post_view)
+
 
 def page_not_found(request, exception):
     return render(
