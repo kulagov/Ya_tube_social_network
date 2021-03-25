@@ -51,7 +51,7 @@ def profile_follow(request, username):
 
 @login_required
 def profile_unfollow(request, username):
-    # ...
+    connection_follow = Follow.objects.get # FIXME
     pass 
 
 
