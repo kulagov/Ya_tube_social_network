@@ -164,7 +164,6 @@ class PostPagesTest(TestCase):
 
         self.assertEqual(post, response_post)
         self.assertEqual(response.context['author'], PostPagesTest.post.author)
-        self.assertEqual(response.context['author_card'], auth_card)
 
     def test_new_post_show_correct_context(self):
         '''Шаблон new_post сформирован с правильным контекстом.'''

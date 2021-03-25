@@ -30,16 +30,18 @@ class FollowIndex(Index):
         self.following = Follow.objects.filter(
             user=self.request.user
         ).values('author')
-        print(self.following)
-        test1 = self.request.user.follower.all()
-        print(test1)
+        # print(self.following)
+        # test1 = self.request.user.follower.all()
+        # print(test1)
         return Post.objects.filter(author__in=self.following)
+
 
 @login_required
 def profile_follow(request, username):
     user = request.user
     author = User.objects.get(username=username)
-    if not Follow.objects.filter(user=user, author=author).exists():
+    if (not Follow.objects.filter(user=user, author=author).exists()
+        and user != author):
         Follow.objects.create(user=user, author=author)
     return redirect('profile', username=username)
 
@@ -88,10 +90,11 @@ class Profile(ListView):
         # }
         # # print(Follow.objects.)
         user = self.request.user
-        author = self.author
-        context['following'] = Follow.objects.filter(
-            user=user, author=author
-        ).exists()
+        if user.is_authenticated:
+            author = self.author
+            context['following'] = Follow.objects.filter(
+                user=user, author=author
+            ).exists()
         return context
 
 # переписать
@@ -114,6 +117,7 @@ class Profile(ListView):
 #             'subscribed': 'FIXME',  # FIXME
 #         }
 #         return context
+
 
 @method_decorator(login_required, name='dispatch')
 class PostEdit(UpdateView):
@@ -143,28 +147,23 @@ class NewPost(CreateView):
         post.author = self.request.user
         return super().form_valid(form)
 
-
+@login_required
 def post_view(request, username, pk):
     author = get_object_or_404(User, username=username)
     post = get_object_or_404(Post, id=pk)
     comments = Comment.objects.filter(post=post).all()
-    if request.method == 'POST':
+    if request.method == 'POST' and request.user.is_authenticated:
         form = CommentForm(request.POST)
         if form.is_valid():
             new_comment = form.save(commit=False)
-            new_comment.author = request.user
+            new_comment.author = request.user  # FIXME
             new_comment.post = post
-            # print(new_comment)
             new_comment.save()
+            return redirect('post', username, pk)
     form = CommentForm()
     content = {
         'post': post,
         'author': author,
-        'author_card': {
-            'records': author.posts.count(),
-            'subscribers': 'FIXME',  # FIXME
-            'subscribed': 'FIXME',  # FIXME
-        },
         'form': form,
         'comments': comments,
     }
