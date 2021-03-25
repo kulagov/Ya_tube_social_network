@@ -121,16 +121,15 @@ class PostPagesTest(TestCase):
 
         response_post = response.context['object_list'][0]
 
-        auth_card = {
-            'records': Post.objects.count(),
-            'subscribers': 'FIXME',
-            'subscribed': 'FIXME',
-        }
+        # auth_card = {
+        #     'records': Post.objects.count(),
+        #     'subscribers': 'FIXME',
+        #     'subscribed': 'FIXME',
+        # }
 
         self.assertEqual(response.status_code, 200)
         self.assertEqual(post, response_post)
         self.assertEqual(response.context['author'], PostPagesTest.post.author)
-        self.assertEqual(response.context['author_card'], auth_card)
 
     def test_group_detail_pages_show_correct_context(self):
         '''Шаблон group/<slug:slug>/ сформирован с правильным контекстом.'''

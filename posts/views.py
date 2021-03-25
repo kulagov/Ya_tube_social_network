@@ -25,34 +25,32 @@ class Index(ListView):
 @method_decorator(login_required, name='dispatch')
 class FollowIndex(Index):
     template_name = 'posts/follow.html'
-    # template_name = 'posts/index.html'
-
-    # def get(self, request, *args, **kwargs):
-    #     print (self.request.user)
-    #     return super().get(request, *args, **kwargs)
 
     def get_queryset(self):
-        # print(self.request.user)
-        # self.following = get_list_or_404(Follow, user=self.request.user)
-        self.following = Follow.objects.filter(user=self.request.user).values('author')
-        # print(self.following)
-        # self.post = get_list_or_404(Post, author__in=self.following)
+        self.following = Follow.objects.filter(
+            user=self.request.user
+        ).values('author')
+        print(self.following)
+        test1 = self.request.user.follower.all()
+        print(test1)
         return Post.objects.filter(author__in=self.following)
-        # return self.following.posts.all()
 
 @login_required
 def profile_follow(request, username):
-    Follow.objects.create(
-        user=request.user,
-        author=username
-    )
-    redirect('profile', username=username)
+    user = request.user
+    author = User.objects.get(username=username)
+    if not Follow.objects.filter(user=user, author=author).exists():
+        Follow.objects.create(user=user, author=author)
+    return redirect('profile', username=username)
 
 
 @login_required
 def profile_unfollow(request, username):
-    connection_follow = Follow.objects.get # FIXME
-    pass 
+    user = request.user
+    author = User.objects.get(username=username)
+    link_follow = get_object_or_404(Follow, user=user, author=author)
+    link_follow.delete()
+    return redirect('profile', username=username)
 
 
 class GroupPosts(ListView):
@@ -83,11 +81,17 @@ class Profile(ListView):
         context = super().get_context_data(**kwargs)
         context['page'] = context.pop('page_obj')
         context['author'] = self.author
-        context['author_card'] = {
-            'records': self.author.posts.count(),
-            'subscribers': 'FIXME',  # FIXME
-            'subscribed': 'FIXME',  # FIXME
-        }
+        # context['author_card'] = {
+        #     'records': self.author.posts.count(),
+        #     # 'subscribers': 'FIXME',  # FIXME
+        #     # 'subscribed': 'FIXME',  # FIXME
+        # }
+        # # print(Follow.objects.)
+        user = self.request.user
+        author = self.author
+        context['following'] = Follow.objects.filter(
+            user=user, author=author
+        ).exists()
         return context
 
 # переписать
@@ -150,9 +154,8 @@ def post_view(request, username, pk):
             new_comment = form.save(commit=False)
             new_comment.author = request.user
             new_comment.post = post
-            print(new_comment)
+            # print(new_comment)
             new_comment.save()
-            # return redirect('/')
     form = CommentForm()
     content = {
         'post': post,

@@ -10,13 +10,13 @@
   <ul class="list-group list-group-flush">
     <li class="list-group-item">
       <div class="h6 text-muted">
-        Подписчиков: {{ author_card.subscribers }} <br />
-        Подписан: {{ author_card.subscribed }}
+        Подписчиков: {{ author.following.count }} <br />
+        Подписан: {{ author.follower.count }}
       </div>
     </li>
     <li class="list-group-item">
       <div class="h6 text-muted">
-        Записей: {{ author_card.records }}
+        Записей: {{ author.posts.count }}
       </div>
     </li>
   </ul>

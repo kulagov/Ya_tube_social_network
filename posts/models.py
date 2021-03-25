@@ -77,3 +77,6 @@ class Follow(models.Model):
         on_delete=models.PROTECT,
         related_name='following',
     )
+
+    def __str__(self):
+        return f'{self.user} - {self.author}'
