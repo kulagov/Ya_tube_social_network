@@ -41,7 +41,7 @@ def profile_follow(request, username):
     user = request.user
     author = User.objects.get(username=username)
     if (not Follow.objects.filter(user=user, author=author).exists()
-        and user != author):
+            and user != author):
         Follow.objects.create(user=user, author=author)
     return redirect('profile', username=username)
 
@@ -148,7 +148,6 @@ class NewPost(CreateView):
         return super().form_valid(form)
 
 
-# @login_required
 def post_view(request, username, pk):
     author = get_object_or_404(User, username=username)
     post = get_object_or_404(Post, id=pk)
@@ -171,7 +170,6 @@ def post_view(request, username, pk):
     return render(request, 'posts/post.html', content)
 
 
-# @login_required
 add_comment = login_required(post_view)
 
 

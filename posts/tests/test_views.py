@@ -64,6 +64,19 @@ class PostPagesTest(TestCase):
                 response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
 
+# FIXME
+    def test_follow_auth_user(self):
+        '''Авторизованный может подписываться и отписываться на других.'''
+        follower_count = self.author.follower.count()
+        print(follower_count)
+        response = self.authorized_client.get(
+            reverse('profile_follow'), username=self.author.username
+        )
+        follower_count = self.author.follower.count()
+        print(follower_count)
+        print(response.status_code)
+
+
     def test_paginator(self):
         '''Проверка работы "пажинатора" и cach index.html.'''
         templates_reverse = (
