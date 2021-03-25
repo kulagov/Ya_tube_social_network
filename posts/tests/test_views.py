@@ -68,12 +68,12 @@ class PostPagesTest(TestCase):
     def test_follow_auth_user(self):
         '''Авторизованный может подписываться и отписываться на других.'''
         follower_count = self.author.follower.count()
-        print(follower_count)
+        print(follower_count, self.author, self.author.following.count())
         response = self.authorized_client.get(
-            reverse('profile_follow'), username=self.author.username
+            reverse('profile_follow', kwargs={'username': self.author.username})
         )
         follower_count = self.author.follower.count()
-        print(follower_count)
+        print(follower_count, self.author.following.count())
         print(response.status_code)
 
 
