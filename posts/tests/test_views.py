@@ -2,8 +2,7 @@ from django import forms
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls import reverse
-
-from posts.models import Group, Post
+from posts.models import Follow, Group, Post
 
 User = get_user_model()
 
@@ -36,9 +35,15 @@ class PostPagesTest(TestCase):
 
     def setUp(self):
         self.guest_client = Client()
+
         self.user = User.objects.create_user(username='StasBasov')
         self.authorized_client = Client()
         self.authorized_client.force_login(self.user)
+
+        self.other_user = User.objects.create_user(username='Votan')
+        self.authorized_other_client = Client()
+        self.authorized_other_client.force_login(self.other_user)
+
         self.author = User.objects.get(username='username')
         self.author_authorized_client = Client()
         self.author_authorized_client.force_login(self.author)
@@ -65,20 +70,78 @@ class PostPagesTest(TestCase):
                 self.assertTemplateUsed(response, template)
 
 # FIXME
-    def test_follow_auth_user(self):
-        '''Авторизованный может подписываться и отписываться на других.'''
-        follower_count = self.author.follower.count()
-        print(follower_count, self.author, self.author.following.count())
-        response = self.authorized_client.get(
-            reverse('profile_follow', kwargs={'username': self.author.username})
-        )
-        follower_count = self.author.follower.count()
-        print(follower_count, self.author.following.count())
-        print(response.status_code)
+    def test_only_auth_user_add_comment(self):
+        '''Только авторизированный пользователь может комментировать посты.'''
+        response = self.authorized_client.get(reverse(
+            'add_comment',
+            kwargs={'username': 'username', 'pk': Post.objects.first().pk}
+        ))
+        self.assertEqual(response.status_code, 200)
 
+        response = self.guest_client.get(reverse(
+            'add_comment',
+            kwargs={'username': 'username', 'pk': Post.objects.first().pk}
+        ))
+        self.assertEqual(response.status_code, 302)
+
+    def test_new_records_adpp_to_follower(self):
+        '''Записи пользователя появляются в ленте подписанта'''
+
+        response_client_one_before = self.authorized_client.get(
+            reverse('follow_index')
+        )
+        response_client_two_before = self.authorized_other_client.get(
+            reverse('follow_index')
+        )
+
+        Follow.objects.create(user=self.user, author=self.author)
+
+        response_client_one_after = self.authorized_client.get(
+            reverse('follow_index')
+        )
+        response_client_two_after = self.authorized_other_client.get(
+            reverse('follow_index')
+        )
+
+        self.assertEqual(
+            len(response_client_one_before.context.get('page').object_list), 0
+        )
+        self.assertEqual(
+            len(response_client_one_after.context.get('page').object_list), 10
+        )
+        self.assertEqual(
+            len(response_client_two_before.context.get('page').object_list), 0
+        )
+        self.assertEqual(
+            len(response_client_two_after.context.get('page').object_list), 0
+        )
+
+    def test_follow_auth_user(self):
+        '''Авторизованный может подписываться/отписываться на пользователей.'''
+        follower_count = self.author.following.count()
+
+        response = self.authorized_client.get(
+            reverse('profile_follow', kwargs={
+                'username': self.author.username
+            }))
+
+        follower_new_count = self.author.following.count()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(follower_count == follower_new_count - 1)
+
+        response = self.authorized_client.get(
+            reverse('profile_unfollow', kwargs={
+                'username': self.author.username
+            }))
+
+        follower_new_count = self.author.following.count()
+
+        self.assertEqual(response.status_code, 302)
+        self.assertTrue(follower_count == follower_new_count)
 
     def test_paginator(self):
-        '''Проверка работы "пажинатора" и cach index.html.'''
+        '''Проверка работы пажинатора и cach index.html.'''
         templates_reverse = (
             reverse('index'),
             reverse('group', kwargs={'slug': 'test-slug'}),
@@ -168,12 +231,6 @@ class PostPagesTest(TestCase):
                 'pk': Post.objects.first().pk
             }))
         response_post = response.context['post']
-
-        auth_card = {
-            'records': Post.objects.count(),
-            'subscribers': 'FIXME',
-            'subscribed': 'FIXME',
-        }
 
         self.assertEqual(post, response_post)
         self.assertEqual(response.context['author'], PostPagesTest.post.author)

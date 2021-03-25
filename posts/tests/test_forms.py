@@ -5,7 +5,6 @@ from django.conf import settings
 from django.core.files.uploadedfile import SimpleUploadedFile
 from django.test import Client, TestCase
 from django.urls import reverse
-
 from posts.forms import PostForm
 from posts.models import Group, Post, User
 
@@ -67,7 +66,7 @@ class PostCreateFormTests(TestCase):
                 group=PostCreateFormTests.group.id,
                 author=self.user,
                 image='posts/small.gif'
-                ).exists()
+            ).exists()
         )
         self.assertEqual(add_post.status_code, 200)
 

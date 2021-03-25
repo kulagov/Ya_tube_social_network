@@ -1,10 +1,8 @@
 from django.contrib.auth.decorators import login_required
-from django.shortcuts import (get_list_or_404, get_object_or_404, redirect,
-                              render)
+from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse_lazy
 from django.urls.base import reverse
 from django.utils.decorators import method_decorator
-from django.views.decorators.cache import cache_page
 from django.views.generic import CreateView, ListView, UpdateView
 
 from .forms import CommentForm, PostForm
@@ -83,12 +81,6 @@ class Profile(ListView):
         context = super().get_context_data(**kwargs)
         context['page'] = context.pop('page_obj')
         context['author'] = self.author
-        # context['author_card'] = {
-        #     'records': self.author.posts.count(),
-        #     # 'subscribers': 'FIXME',  # FIXME
-        #     # 'subscribed': 'FIXME',  # FIXME
-        # }
-        # # print(Follow.objects.)
         user = self.request.user
         if user.is_authenticated:
             author = self.author
@@ -96,27 +88,6 @@ class Profile(ListView):
                 user=user, author=author
             ).exists()
         return context
-
-# переписать
-# class PostView(DetailView):
-#     template_name = 'posts/post.html'
-#     form_class = CommentForm
-#     model = Comment
-
-#     def get_queryset(self):
-#         self.author = get_object_or_404(User, username=self.kwargs['username'])
-#         self.post = get_object_or_404(Post, id=self.kwargs['pk'])
-#         return Post.objects.filter(id=self.kwargs['pk'], author=self.author)
-
-#     def get_context_data(self, **kwargs):
-#         context = super().get_context_data(**kwargs)
-#         context['author'] = 'fixme'  #  self.author
-#         context['author_card'] = {
-#             'records': 0,  # self.author.posts.count(),
-#             'subscribers': 'FIXME',  # FIXME
-#             'subscribed': 'FIXME',  # FIXME
-#         }
-#         return context
 
 
 @method_decorator(login_required, name='dispatch')

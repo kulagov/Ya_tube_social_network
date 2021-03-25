@@ -1,6 +1,5 @@
 from textwrap import shorten
 
-from django.contrib import auth
 from django.contrib.auth import get_user_model
 from django.db import models
 

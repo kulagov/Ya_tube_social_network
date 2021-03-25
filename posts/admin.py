@@ -14,4 +14,3 @@ admin.site.register(Post, PostAdmin)
 admin.site.register(Group)
 admin.site.register(Comment)
 admin.site.register(Follow)
-
