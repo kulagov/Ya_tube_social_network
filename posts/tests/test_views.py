@@ -52,15 +52,17 @@ class PostPagesTest(TestCase):
         '''URL-адрес использует соответствующий шаблон.'''
         templates_page_names = {
             'posts/index.html': reverse('index'),
-            'group.html': reverse('group', kwargs={'slug': 'test-slug'}),
+            'group.html': reverse(
+                'group', kwargs={'slug': PostPagesTest.group.slug}
+            ),
             'posts/newpost.html': reverse('new_post'),
             'posts/profile.html': reverse(
                 'profile',
-                kwargs={'username': 'username'}
+                kwargs={'username': self.author}
             ),
             'posts/post.html': reverse(
                 'post',
-                kwargs={'username': 'username', 'pk': Post.objects.first().pk}
+                kwargs={'username': self.author, 'pk': Post.objects.first().pk}
             ),
         }
 
@@ -69,22 +71,21 @@ class PostPagesTest(TestCase):
                 response = self.authorized_client.get(reverse_name)
                 self.assertTemplateUsed(response, template)
 
-# FIXME
     def test_only_auth_user_add_comment(self):
         '''Только авторизированный пользователь может комментировать посты.'''
         response = self.authorized_client.get(reverse(
             'add_comment',
-            kwargs={'username': 'username', 'pk': Post.objects.first().pk}
+            kwargs={'username': self.author, 'pk': Post.objects.first().pk}
         ))
         self.assertEqual(response.status_code, 200)
 
         response = self.guest_client.get(reverse(
             'add_comment',
-            kwargs={'username': 'username', 'pk': Post.objects.first().pk}
+            kwargs={'username': self.author, 'pk': Post.objects.first().pk}
         ))
         self.assertEqual(response.status_code, 302)
 
-    def test_new_records_adpp_to_follower(self):
+    def test_new_records_add_to_follower(self):
         '''Записи пользователя появляются в ленте подписанта'''
 
         response_client_one_before = self.authorized_client.get(
@@ -117,34 +118,43 @@ class PostPagesTest(TestCase):
         )
 
     def test_follow_auth_user(self):
-        '''Авторизованный может подписываться/отписываться на пользователей.'''
+        '''Авторизованный может подписываться на других пользователей.'''
         follower_count = self.author.following.count()
 
         response = self.authorized_client.get(
             reverse('profile_follow', kwargs={
-                'username': self.author.username
+                'username': self.author
             }))
 
         follower_new_count = self.author.following.count()
 
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(follower_count == follower_new_count - 1)
+        self.assertTrue(follower_count + 1 == follower_new_count)
+
+    def test_unfollow_auth_user(self):
+        '''Авторизованный пользователь может отписываться.'''
+        response = self.authorized_client.get(
+            reverse('profile_follow', kwargs={
+                'username': self.author
+            }))
+
+        follower_count = self.author.following.count()
 
         response = self.authorized_client.get(
             reverse('profile_unfollow', kwargs={
-                'username': self.author.username
+                'username': self.author
             }))
 
         follower_new_count = self.author.following.count()
 
         self.assertEqual(response.status_code, 302)
-        self.assertTrue(follower_count == follower_new_count)
+        self.assertTrue(follower_count - 1 == follower_new_count)
 
     def test_paginator(self):
         '''Проверка работы пажинатора и cach index.html.'''
         templates_reverse = (
             reverse('index'),
-            reverse('group', kwargs={'slug': 'test-slug'}),
+            reverse('group', kwargs={'slug': PostPagesTest.group.slug}),
             reverse('profile', kwargs={'username': self.author})
         )
 
@@ -158,24 +168,6 @@ class PostPagesTest(TestCase):
                 self.assertEqual(
                     len(response.context.get('page').object_list), 3
                 )
-        # проверка cach
-            # last_text = Post.objects.last()
-            # print('!!!!!!!', last_text.text)
-            # last_text.text = 'Новый текст'
-            # Post.objects.bulk_update((last_text,),('text',))
-            # # Post.objects.last().
-
-            # last_text = Post.objects.last()
-
-            # print('!!!!!!!', last_text.text)
-            # response = self.guest_client.get(reverse('index'))
-            # response_post = response.context.get('object_list')[0]
-            # print(response_post)
-        # Post
-
-        # self.assertEqual(
-        #     len(response.context.get('page').object_list), 10
-        # )
 
     def test_index_page_show_correct_context(self):
         '''Шаблон index сформирован с правильным контекстом.'''
@@ -197,12 +189,6 @@ class PostPagesTest(TestCase):
 
         response_post = response.context['object_list'][0]
 
-        # auth_card = {
-        #     'records': Post.objects.count(),
-        #     'subscribers': 'FIXME',
-        #     'subscribed': 'FIXME',
-        # }
-
         self.assertEqual(response.status_code, 200)
         self.assertEqual(post, response_post)
         self.assertEqual(response.context['author'], PostPagesTest.post.author)
@@ -212,7 +198,7 @@ class PostPagesTest(TestCase):
         post = PostPagesTest.post
 
         response = self.authorized_client.get(
-            reverse('group', kwargs={'slug': 'test-slug'})
+            reverse('group', kwargs={'slug': PostPagesTest.group.slug})
         )
 
         response_post = response.context.get('object_list')[0]
@@ -227,7 +213,7 @@ class PostPagesTest(TestCase):
 
         response = self.authorized_client.get(
             reverse('post', kwargs={
-                'username': 'username',
+                'username': self.author,
                 'pk': Post.objects.first().pk
             }))
         response_post = response.context['post']
@@ -258,7 +244,7 @@ class PostPagesTest(TestCase):
 
         response = self.author_authorized_client.get(
             reverse('post_edit', kwargs={
-                'username': 'username',
+                'username': self.author,
                 'pk': Post.objects.last().pk
             }))
 

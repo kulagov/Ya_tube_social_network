@@ -1,7 +1,6 @@
 from django.contrib.auth import get_user_model
 from django.test import Client, TestCase
 from django.urls.base import reverse
-
 from posts.models import Group, Post
 
 User = get_user_model()
@@ -11,18 +10,6 @@ class PostURLTests(TestCase):
     @classmethod
     def setUpClass(cls):
         super().setUpClass()
-        cls.status_url = {
-            '/': 200,
-            '/group/test-slug/': 200,
-            '/username/': 200,
-            '/username/1/': 200,
-        }
-        cls.templates_url_names = {
-            'posts/index.html': '/',
-            'posts/newpost.html': '/new/',
-            'group.html': '/group/test-slug/',
-            'posts/profile.html': '/username/',
-        }
         user = User.objects.create(
             password='password',
             email='a@a.com',
@@ -40,6 +27,18 @@ class PostURLTests(TestCase):
             author=user,
             group=group
         )
+        cls.status_url = {
+            '/': 200,
+            f'/group/{group.slug}/': 200,
+            f'/{user.username}/': 200,
+            f'/{user.username}/{PostURLTests.post.id}/': 200,
+        }
+        cls.templates_url_names = {
+            'posts/index.html': '/',
+            'posts/newpost.html': '/new/',
+            'group.html': f'/group/{group.slug}/',
+            'posts/profile.html': f'/{user.username}/',
+        }
 
     def setUp(self):
         self.guest_client = Client()

@@ -25,31 +25,22 @@ class FollowIndex(Index):
     template_name = 'posts/follow.html'
 
     def get_queryset(self):
-        self.following = Follow.objects.filter(
-            user=self.request.user
-        ).values('author')
-        # print(self.following)
-        # test1 = self.request.user.follower.all()
-        # print(test1)
-        return Post.objects.filter(author__in=self.following)
-
+        return Post.objects.filter(author__following__user=self.request.user)
 
 @login_required
 def profile_follow(request, username):
     user = request.user
-    author = User.objects.get(username=username)
-    if (not Follow.objects.filter(user=user, author=author).exists()
-            and user != author):
-        Follow.objects.create(user=user, author=author)
+    author = get_object_or_404(User, username=username)
+    if user != author:
+        Follow.objects.get_or_create(user=user, author=author)
     return redirect('profile', username=username)
 
 
 @login_required
 def profile_unfollow(request, username):
     user = request.user
-    author = User.objects.get(username=username)
-    link_follow = get_object_or_404(Follow, user=user, author=author)
-    link_follow.delete()
+    author = get_object_or_404(User, username=username)
+    Follow.objects.filter(user=user, author=author).delete()
     return redirect('profile', username=username)
 
 
@@ -127,7 +118,7 @@ def post_view(request, username, pk):
         form = CommentForm(request.POST)
         if form.is_valid():
             new_comment = form.save(commit=False)
-            new_comment.author = request.user  # FIXME
+            new_comment.author = request.user
             new_comment.post = post
             new_comment.save()
             return redirect('post', username, pk)

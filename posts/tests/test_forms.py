@@ -82,7 +82,7 @@ class PostCreateFormTests(TestCase):
         }
         update_post = self.authorized_client.post(
             reverse('post_edit', kwargs={
-                'username': 'StasBasov',
+                'username': self.user,
                 'pk': post.id
             }),
             data=update_data,
