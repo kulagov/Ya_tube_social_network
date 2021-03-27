@@ -27,6 +27,7 @@ class FollowIndex(Index):
     def get_queryset(self):
         return Post.objects.filter(author__following__user=self.request.user)
 
+
 @login_required
 def profile_follow(request, username):
     user = request.user
